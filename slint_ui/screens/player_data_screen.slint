@@ -1,0 +1,90 @@
+import { ScrollView } from "std-widgets.slint";
+
+struct Placement {
+    tournament: string,
+    place: int
+}
+
+component PlacementBox {
+    in-out property <Placement> placement_data;
+
+    Rectangle {
+        width: 100%;
+        height: 40px;
+
+        border-color: white;
+        border-width: 1px;
+        clip: false;
+        border-radius: 2px;
+
+        function placement_suffix(placement: int) -> string {
+            if (mod(placement, 10) == 3 && mod(placement, 100) != 13) {
+                return "rd";
+            } else if (mod(placement, 10) == 1 && mod(placement, 100) != 11) {
+                return "st";
+            } else if (mod(placement, 10) == 2) {
+                return "nd";
+            } else {
+                return "th";
+            }
+        }
+
+        Text {
+            text: "\{placement_data.tournament}: \{placement_data.place}\{placement_suffix(placement_data.place)}";
+            color: white;
+            font-weight: 600;
+
+            height: 100%;
+            width: 95%;
+
+            vertical-alignment: center;
+            horizontal-alignment: left;
+        }
+    }
+}
+
+export component PlayerDataScreen {
+    in-out property <image> character_render: @image-url("../res/random.png");
+    in-out property <string> player_name: "Test";
+    in-out property <[Placement]> placements: [
+        { tournament: "Hi", place: 1 },
+        { tournament: "This is a long boi, but also not really", place: 5 },
+        { tournament: "xyz", place: 7 },
+        { tournament: "no you", place: 1 }
+    ];
+
+    ScrollView {
+        viewport-height: 500px + placements.length * (40px);
+
+        Rectangle {
+            background: black;
+
+            VerticalLayout {
+
+                padding: 15px;
+                alignment: LayoutAlignment.space-between;
+
+                character_portrait := Image {
+                    source: character_render;
+                    height: 400px;
+
+                    Text {
+                        width: 80%;
+                        height: 95%;
+
+                        text: player_name;
+                        font-weight: 800;
+                        font-size: 50px;
+                        color: white;
+                        vertical-alignment: bottom;
+                        horizontal-alignment: right;
+                    }
+                }
+
+                for place in placements: PlacementBox {
+                    placement_data: place;
+                }
+            }
+        }
+    }
+}

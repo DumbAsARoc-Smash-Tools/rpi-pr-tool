@@ -6,10 +6,17 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-futures = "0.3.31"
-graphql_client = "0.14.0"
+anyhow = "1.0.98"
+slint = "1.11.0"
+sqlite = "0.37.0"
+tokio = { version = "1.45.1", features = [ "rt", "macros", "rt-multi-thread" ] }
+# futures = "0.3.31"
+# graphql_client = "0.14.0"
 # indicatif = "0.17.9"
 # lazy_static = "1.5.0"
 # reqwest = { version = "0.12.9", features = ["json"]}
 # serde = "1.0.215"
 # tokio = { version = "1.41.1", features = ["full"]}
+
+[build-dependencies]
+slint-build = "1.11.0"

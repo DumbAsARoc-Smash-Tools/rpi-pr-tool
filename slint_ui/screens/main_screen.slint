@@ -1,0 +1,48 @@
+import { Button } from "std-widgets.slint";
+import { ActiveColors as AC } from "../properties/colors.slint";
+import { ActiveScreen as AS, Screens } from "screens.slint";
+
+import { EZPRButton } from "../components.slint";
+
+export component MainScreen {
+    Rectangle {
+        background: #327cc7;
+
+        VerticalLayout {
+
+            alignment: start;
+
+            Text {
+                font-size: 48px;
+                font-weight: 800;
+                color: black;
+                horizontal-alignment: center;
+
+                text: "EZPR - The Easy PR Tool";
+            }
+
+            HorizontalLayout {
+                padding: 50px;
+                alignment: space-around;
+                
+                EZPRButton {
+                    text: "Create New Season";
+                    background: gray;
+                    color: white;
+                    font-size: 16px;
+
+                    clicked => {
+                        AS.screen = Screens.PLAYERDATA;
+                    }
+                }
+
+                EZPRButton {
+                    text: "Load Existing Season";
+                    background: gray;
+                    color: white;
+                    font-size: 16px;
+                }
+            }
+        }
+    }
+}
