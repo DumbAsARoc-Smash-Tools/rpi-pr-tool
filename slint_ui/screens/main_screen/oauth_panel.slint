@@ -1,0 +1,75 @@
+import { Spinner, ProgressIndicator, Button } from "std-widgets.slint";
+import { Hyperlink, EZPRButton } from "../../components.slint";
+
+enum OAuthStep {
+    NOTSTARTED,
+    WAITINGFORCODE,
+    OBTAINED
+}
+
+export component OAuthPanel inherits Rectangle {
+
+    width: 400px;
+    height: 400px;
+    background: white;
+    border-color: black;
+    border-width: 2px;
+    border-radius: 5px;
+
+    callback hyperlink-clicked();
+    callback close-window-clicked();
+    callback cancel-clicked();
+
+    in-out property <OAuthStep> oauth-step: NOTSTARTED;
+
+    VerticalLayout {
+        alignment: center;
+        spacing: 40px;
+        padding: 20px;
+
+        if oauth-step == OAuthStep.NOTSTARTED: Hyperlink {
+            text: "Click here to sign in to your Start.GG Account!";
+            font-size: 14px;
+            vertical-alignment: center;
+            horizontal-alignment: center;
+            clicked => {
+                hyperlink-clicked();
+                oauth-step = OAuthStep.WAITINGFORCODE;
+            }
+        }
+        if oauth-step == OAuthStep.WAITINGFORCODE: Rectangle {
+
+            height: 60%;
+            width: 60%;
+
+            Text {
+                height: 100%;
+                text: "Waiting for OAuth...";
+                font-weight: 600;
+                font-size: 16px;
+                
+                color: black;
+                vertical-alignment: top;
+            }
+
+            Spinner {
+                width: 100px;
+                height: 100px;
+                indeterminate: true;
+            }
+        }
+
+        if oauth-step == OAuthStep.NOTSTARTED: EZPRButton {
+            text: "Close";
+            clicked => { close-window-clicked(); }
+        }
+        if oauth-step == OAuthStep.WAITINGFORCODE: EZPRButton {
+            text: "Cancel";
+            clicked => {
+                cancel-clicked();
+                oauth-step = OAuthStep.NOTSTARTED;
+            }
+        }
+    }
+
+}

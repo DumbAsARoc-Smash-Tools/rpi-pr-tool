@@ -7,7 +7,7 @@ export component EZPRButton {
     in-out property <length> border-width <=> rect.border-width;
     in-out property <brush> border-color <=> rect.border-color;
     in-out property <length> border-radius <=> rect.border-radius;
-
+    
     callback clicked <=> ta.clicked;
 
     in-out property <length> button-padding: 15px;
@@ -99,5 +99,18 @@ export component ClickableText inherits Rectangle {
             height: 2px;
             background: underline-color;
         }
+    }
+}
+
+export component Hyperlink inherits Text {
+
+    callback clicked <=> ta.clicked;
+
+    color: blue;
+
+    ta := TouchArea {
+        height: 100%;
+        width: 100%;
+        mouse-cursor: pointer;
     }
 }

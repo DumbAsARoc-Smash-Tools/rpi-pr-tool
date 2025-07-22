@@ -2,7 +2,7 @@ import { ActiveScreen as AS, Screens } from "screens/screens.slint";
 import { ActiveColors as AC } from "properties/colors.slint";
 import { ComboBox, Button } from "std-widgets.slint";
 
-import { MainScreen } from "screens/main_screen.slint";
+import { MainScreen } from "screens/main_screen/main_screen.slint";
 import { PlayerDataScreen } from "screens/player_data_screen.slint";
 
 export component EZPRWindow inherits Window {
@@ -10,11 +10,15 @@ export component EZPRWindow inherits Window {
     min-height: 640px;
     min-width: 800px;
 
+    callback first_button_clicked();
+
     title: "EZPR - The Easy Power Rankings Tool!";
 
     if(AS.screen == Screens.MAIN): MainScreen {
         width: 100%;
         height: 100%;
+
+        second_button_clicked => { first_button_clicked(); }
     }
     if(AS.screen == Screens.PLAYERDATA): PlayerDataScreen {
         width: 100%;

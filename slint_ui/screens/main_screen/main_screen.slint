@@ -1,10 +1,15 @@
 import { Button } from "std-widgets.slint";
-import { ActiveColors as AC } from "../properties/colors.slint";
-import { ActiveScreen as AS, Screens } from "screens.slint";
+import { ActiveColors as AC } from "../../properties/colors.slint";
+import { ActiveScreen as AS, Screens } from "../screens.slint";
+import { OAuthPanel } from "oauth_panel.slint";
 
-import { EZPRButton } from "../components.slint";
+import { EZPRButton } from "../../components.slint";
 
 export component MainScreen {
+    in-out property <string> hyperlink-url;
+    callback get_oauth_hyperlink() -> string;
+    callback second_button_clicked();
+
     Rectangle {
         background: #327cc7;
 
@@ -41,6 +46,31 @@ export component MainScreen {
                     background: gray;
                     color: white;
                     font-size: 16px;
+
+                    clicked => { second_button_clicked(); }
+                }
+            }
+
+            EZPRButton {
+                text: "Connect Start.GG Account (OAUTH2)";
+                clicked => {
+                    oauth_popup.show();
+                }
+            }
+        }
+
+        oauth_popup := PopupWindow {
+
+            x: (parent.width - 400px) / 2;
+            y: (parent.height - 400px) / 2;
+
+            close-policy: no-auto-close;
+            width: 400px;
+            height: 400px;
+
+            OAuthPanel {
+                close-window-clicked => {
+                    oauth_popup.close();
                 }
             }
         }
