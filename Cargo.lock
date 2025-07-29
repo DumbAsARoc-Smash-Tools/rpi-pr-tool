@@ -4556,6 +4556,7 @@ dependencies = [
  "anyhow",
  "bitcode",
  "futures",
+ "lazy_static",
  "oauth2",
  "open",
  "reqwest",

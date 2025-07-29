@@ -16,9 +16,9 @@ export component OAuthPanel inherits Rectangle {
     border-width: 2px;
     border-radius: 5px;
 
-    callback hyperlink-clicked();
-    callback close-window-clicked();
-    callback cancel-clicked();
+    callback oauth_signin_button_clicked();
+    callback oauth_cancel_button_clicked();
+    callback oauth_close_button_clicked();
 
     in-out property <OAuthStep> oauth-step: NOTSTARTED;
 
@@ -33,7 +33,7 @@ export component OAuthPanel inherits Rectangle {
             vertical-alignment: center;
             horizontal-alignment: center;
             clicked => {
-                hyperlink-clicked();
+                oauth_signin_button_clicked();
                 oauth-step = OAuthStep.WAITINGFORCODE;
             }
         }
@@ -61,12 +61,12 @@ export component OAuthPanel inherits Rectangle {
 
         if oauth-step == OAuthStep.NOTSTARTED: EZPRButton {
             text: "Close";
-            clicked => { close-window-clicked(); }
+            clicked => { oauth_close_button_clicked(); }
         }
         if oauth-step == OAuthStep.WAITINGFORCODE: EZPRButton {
             text: "Cancel";
             clicked => {
-                cancel-clicked();
+                oauth_cancel_button_clicked();
                 oauth-step = OAuthStep.NOTSTARTED;
             }
         }

@@ -10,7 +10,9 @@ export component EZPRWindow inherits Window {
     min-height: 640px;
     min-width: 800px;
 
-    callback first_button_clicked();
+    callback oauth_signin_button_clicked();
+    callback oauth_cancel_button_clicked();
+    callback oauth_close_button_clicked();
 
     title: "EZPR - The Easy Power Rankings Tool!";
 
@@ -18,8 +20,11 @@ export component EZPRWindow inherits Window {
         width: 100%;
         height: 100%;
 
-        second_button_clicked => { first_button_clicked(); }
+        oauth_signin_button_clicked => { oauth_signin_button_clicked(); }
+        oauth_cancel_button_clicked => { oauth_cancel_button_clicked(); }
+        oauth_close_button_clicked => { oauth_close_button_clicked(); }
     }
+
     if(AS.screen == Screens.PLAYERDATA): PlayerDataScreen {
         width: 100%;
         height: 100%;

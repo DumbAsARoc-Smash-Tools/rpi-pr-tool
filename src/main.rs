@@ -4,10 +4,18 @@ mod settings;
 
 slint::include_modules!();
 
+use std::sync::Mutex;
+use tokio::task::JoinHandle;
+
 use std::io::Write;
 
+use lazy_static::lazy_static;
 use oauth2::TokenResponse;
 use slint::ComponentHandle;
+
+lazy_static! {
+    static ref OAUTH_WEBSERVER_HANDLE: Mutex<Option<JoinHandle<()>>> = Mutex::new(None);
+}
 
 
 fn serialize(set: &settings::RPIPRSettings) -> anyhow::Result<()> {
@@ -30,9 +38,15 @@ async fn main() -> anyhow::Result<()> {
         Err(e) => { return Err(anyhow::anyhow!(e)); }
     };
 
-    // let mainwin_weak = mainwin.as_weak();
-    mainwin.on_first_button_clicked(move || {
-        let _handle = slint::spawn_local(async move {
+    let mainwin_weak = mainwin.as_weak();
+    mainwin.on_oauth_signin_button_clicked(move || {
+        let mut webserver_lock = OAUTH_WEBSERVER_HANDLE.lock().unwrap();
+        if webserver_lock.is_some() {
+            println!("Webserver is runing currently");
+            return;
+        }
+
+        let handle = tokio::spawn(async move {
             let code = oauth::StartGGOAuth::get_oauth_token(8080).await;
             println!("Token: {}", code.clone().unwrap().access_token().secret());
 
@@ -44,7 +58,21 @@ async fn main() -> anyhow::Result<()> {
                 },
                 _ => {}
             };
-        }).unwrap();
+        });
+
+        *webserver_lock = Some(handle);
+    });
+
+    // mainwin.on_oauth_signin_button_clicked(move || {
+    //     println!("oauth button clicked");
+    // });
+
+    mainwin.on_oauth_cancel_button_clicked(move || {
+        println!("oauth cancel button clicked");
+    });
+
+    mainwin.on_oauth_close_button_clicked(move || {
+        println!("close window");
     });
 
     mainwin.run()?;

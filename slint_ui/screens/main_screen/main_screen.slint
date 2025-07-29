@@ -8,6 +8,11 @@ import { EZPRButton } from "../../components.slint";
 export component MainScreen {
     in-out property <string> hyperlink-url;
     callback get_oauth_hyperlink() -> string;
+
+    callback oauth_signin_button_clicked();
+    callback oauth_cancel_button_clicked();
+    callback oauth_close_button_clicked();
+
     callback second_button_clicked();
 
     Rectangle {
@@ -46,8 +51,6 @@ export component MainScreen {
                     background: gray;
                     color: white;
                     font-size: 16px;
-
-                    clicked => { second_button_clicked(); }
                 }
             }
 
@@ -69,7 +72,11 @@ export component MainScreen {
             height: 400px;
 
             OAuthPanel {
-                close-window-clicked => {
+                oauth_signin_button_clicked => { oauth_signin_button_clicked(); }
+                oauth_cancel_button_clicked => { oauth_cancel_button_clicked(); }
+
+                oauth_close_button_clicked => {
+                    oauth_close_button_clicked();
                     oauth_popup.close();
                 }
             }

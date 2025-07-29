@@ -8,6 +8,7 @@ use tokio::io::{AsyncBufReadExt, BufReader, AsyncWriteExt};
 
 // use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use tokio::net::TcpListener;
+use tokio::task::JoinHandle;
 use url::Url;
 
 const STARTGG_AUTH_URL: &str = "https://start.gg/oauth/authorize";
@@ -18,6 +19,40 @@ const STARTGG_REDIRECT_URI: &str = "http://localhost";
 pub struct StartGGOAuth;
 
 impl StartGGOAuth {
+
+    /// This is the function that the application will call. It either
+    /// returns NONE (aka, the webserver is already running and we shouldn't
+    /// start another) or the OAUTH url the user should click and accept through.
+    /// This also sets the static webserver join handles
+    pub fn oauth_initialization(redirect_uri_port: u16) -> Option<AuthUrl> {
+        let startgg_client_id = ClientId::new(
+            env!("CLIENT_ID").to_string()
+        );
+        
+        let startgg_client_secret = ClientSecret::new(
+            env!("CLIENT_SECRET").to_string()
+        );
+        
+        let startgg_auth_url = AuthUrl::new(
+            STARTGG_AUTH_URL.to_string()
+        ).expect("Could not create authentication URL.");
+        
+        let startgg_token_url = TokenUrl::new(
+            STARTGG_TOKEN_URL.to_string()
+        ).expect("Could not create token URL.");
+
+        let client = BasicClient::new(startgg_client_id)
+            .set_client_secret(startgg_client_secret)
+            .set_auth_uri(startgg_auth_url)
+            .set_token_uri(startgg_token_url)
+            .set_redirect_uri(
+                RedirectUrl::new(
+                    format!("{}:{}", STARTGG_REDIRECT_URI, redirect_uri_port)
+                ).expect("Invalid redirect URL")
+            );
+        
+        None
+    }
 
     /// General structure of code borrowed from oauth2 example at
     /// https://github.com/ramosbugs/oauth2-rs/blob/main/examples/github_async.rs
