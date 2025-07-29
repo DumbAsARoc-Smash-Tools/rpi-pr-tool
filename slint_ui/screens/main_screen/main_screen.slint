@@ -7,7 +7,9 @@ import { EZPRButton } from "../../components.slint";
 
 export component MainScreen {
     in-out property <string> hyperlink-url;
+    in-out property <bool> oauth-visible: false;
 
+    callback oauth_start_auth_button_clicked();
     callback oauth_hyperlink_clicked();
     callback oauth_cancel_button_clicked();
     callback oauth_close_button_clicked();
@@ -36,6 +38,7 @@ export component MainScreen {
                 
                 EZPRButton {
                     text: "Create New Season";
+                    enabled: !oauth-visible;
                     background: gray;
                     color: white;
                     font-size: 16px;
@@ -47,6 +50,7 @@ export component MainScreen {
 
                 EZPRButton {
                     text: "Load Existing Season";
+                    enabled: !oauth-visible;
                     background: gray;
                     color: white;
                     font-size: 16px;
@@ -54,37 +58,47 @@ export component MainScreen {
             }
 
             EZPRButton {
+                enabled: !oauth-visible;
                 text: "Connect Start.GG Account (OAUTH2)";
                 clicked => {
-                    oauth_popup.show();
+                    oauth_start_auth_button_clicked();
+                    // oauth_popup.show();
+                    oauth-visible = true;
                 }
             }
         }
 
-        oauth_popup := PopupWindow {
+        // oauth_popup := PopupWindow {
 
-            x: (parent.width - 400px) / 2;
-            y: (parent.height - 400px) / 2;
+        //     x: (parent.width - 400px) / 2;
+        //     y: (parent.height - 400px) / 2;
 
-            close-policy: no-auto-close;
-            width: 400px;
-            height: 400px;
+        //     close-policy: no-auto-close;
+        //     width: 400px;
+        //     height: 400px;
 
-            OAuthPanel {
+            if oauth-visible: OAuthPanel {
+
+                height: 400px;
+                width: 400px;
+                z: 10;
+
                 oauth_hyperlink_clicked => {
                     oauth_hyperlink_clicked();
                 }
                 
                 oauth_cancel_button_clicked => {
                     oauth_cancel_button_clicked();
-                    oauth_popup.close();
+                    // oauth_popup.close();
+                    oauth-visible = false;
                 }
 
                 oauth_close_button_clicked => {
                     oauth_close_button_clicked();
-                    oauth_popup.close();
+                    // oauth_popup.close();
+                    oauth-visible = false;
                 }
             }
-        }
+        // }
     }
 }

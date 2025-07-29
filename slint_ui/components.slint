@@ -4,6 +4,8 @@ export component EZPRButton {
     in-out property <color> color: black;
     in-out property <length> font-size <=> txt.font-size;
 
+    in-out property <bool> enabled: true;
+
     in-out property <length> border-width <=> rect.border-width;
     in-out property <brush> border-color <=> rect.border-color;
     in-out property <length> border-radius <=> rect.border-radius;
@@ -28,6 +30,10 @@ export component EZPRButton {
         }
 
         states [
+            nofocus when !enabled: {
+                background: root.background;
+            }
+
             standard when !ta.has-hover: {
                 background: root.background;
             }
@@ -44,6 +50,7 @@ export component EZPRButton {
         ta := TouchArea {
             width: 100%;
             height: 100%;
+            enabled: enabled;
         }
 
         txt := Text {

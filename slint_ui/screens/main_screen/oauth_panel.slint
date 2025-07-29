@@ -44,7 +44,8 @@ export component OAuthPanel inherits Rectangle {
                 }
 
                 Text {
-                    height: 40px;
+                    width: 100%;
+                    wrap: TextWrap.word-wrap;
                     color: AC.text;
                     text: "Start.GG access is needed to query data from Start.GG's API, so to continue, please sign in with your Start.GG account.";
                     font-weight: 600;
@@ -83,6 +84,8 @@ export component OAuthPanel inherits Rectangle {
                 }
 
                 Text {
+                    width: 100%;
+                    wrap: TextWrap.word-wrap;
                     color: AC.text;
                     font-weight: 600;
                     text: "This page will update automatically once these steps are taken...";
@@ -91,8 +94,19 @@ export component OAuthPanel inherits Rectangle {
                 Spinner {
                     width: 100%;
                     height: 100px;
+                    // progress: 0.5;
+                    // height: 80px;
                     indeterminate: true;
                 }
+
+                // Image {
+                //     source: @image-url("../../res/spinner_100px.gif");
+                //     width: 100%;
+                //     height: 100px;
+                //     image-fit: preserve;
+                //     horizontal-alignment: center;
+                //     vertical-alignment: center;
+                // }
 
                 EZPRButton {
                     text: "tmp";
@@ -122,6 +136,8 @@ export component OAuthPanel inherits Rectangle {
 
                 Text {
                     horizontal-alignment: center;
+                    width: 100%;
+                    wrap: TextWrap.word-wrap;
                     font-weight: 600;
                     color: AC.text;
                     text: "Thank you for signing in, \{SGGState.startgg-user}! This popup may now be closed.";

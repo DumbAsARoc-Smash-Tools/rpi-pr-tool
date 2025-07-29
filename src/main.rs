@@ -39,28 +39,28 @@ async fn main() -> anyhow::Result<()> {
     };
 
     let mainwin_weak = mainwin.as_weak();
-    mainwin.on_oauth_signin_button_clicked(move || {
-        let mut webserver_lock = OAUTH_WEBSERVER_HANDLE.lock().unwrap();
-        if webserver_lock.is_some() {
-            println!("Webserver is runing currently");
-            return;
-        }
+    mainwin.on_oauth_start_auth_button_clicked(move || {
+        // let mut webserver_lock = OAUTH_WEBSERVER_HANDLE.lock().unwrap();
+        // if webserver_lock.is_some() {
+        //     println!("Webserver is runing currently");
+        //     return;
+        // }
 
-        let handle = tokio::spawn(async move {
-            let code = oauth::StartGGOAuth::get_oauth_token(8080).await;
-            println!("Token: {}", code.clone().unwrap().access_token().secret());
+        // let handle = tokio::spawn(async move {
+        //     let code = oauth::StartGGOAuth::get_oauth_token(8080).await;
+        //     println!("Token: {}", code.clone().unwrap().access_token().secret());
 
-            let s = settings::RPIPRSettings::new()
-                .set_token(code.clone());
-            match serialize(&s) {
-                Err(e) => {
-                    println!("Error: {}", e);
-                },
-                _ => {}
-            };
-        });
+        //     // let s = settings::RPIPRSettings::new()
+        //     //     .set_token(code.clone());
+        //     // match serialize(&s) {
+        //     //     Err(e) => {
+        //     //         println!("Error: {}", e);
+        //     //     },
+        //     //     _ => {}
+        //     // };
+        // });
 
-        *webserver_lock = Some(handle);
+        // *webserver_lock = Some(handle);
     });
 
     // mainwin.on_oauth_signin_button_clicked(move || {
