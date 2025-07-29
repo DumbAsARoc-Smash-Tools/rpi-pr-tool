@@ -7,10 +7,13 @@ import { PlayerDataScreen } from "screens/player_data_screen.slint";
 
 export component EZPRWindow inherits Window {
 
+    in-out property <string> oauth-hyperlink-url;
+
     min-height: 640px;
     min-width: 800px;
 
-    callback oauth_signin_button_clicked();
+    callback oauth_start_auth_button_clicked();
+    callback oauth_hyperlink_clicked();
     callback oauth_cancel_button_clicked();
     callback oauth_close_button_clicked();
 
@@ -20,7 +23,9 @@ export component EZPRWindow inherits Window {
         width: 100%;
         height: 100%;
 
-        oauth_signin_button_clicked => { oauth_signin_button_clicked(); }
+        hyperlink-url: oauth-hyperlink-url;
+
+        oauth_hyperlink_clicked => { oauth_hyperlink_clicked(); }
         oauth_cancel_button_clicked => { oauth_cancel_button_clicked(); }
         oauth_close_button_clicked => { oauth_close_button_clicked(); }
     }

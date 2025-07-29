@@ -17,9 +17,10 @@ export component OAuthPanel inherits Rectangle {
     border-width: 2px;
     border-radius: 5px;
 
-    callback oauth_signin_button_clicked();
+    callback oauth_hyperlink_clicked();
     callback oauth_cancel_button_clicked();
     callback oauth_close_button_clicked();
+    // code get actions will be rust-side
 
     in-out property <OAuthStep> oauth-step: WEBSERVER-UP;
 
@@ -63,10 +64,8 @@ export component OAuthPanel inherits Rectangle {
                     Hyperlink {
                         text: "here";
                         font-weight: 600;
-                        // font-size: 14px;
                         clicked => {
-                            oauth_signin_button_clicked();
-                            // oauth-step = OAuthStep.WAITINGFORCODE;
+                            oauth_hyperlink_clicked();
                         }
                     }
 
@@ -142,12 +141,12 @@ export component OAuthPanel inherits Rectangle {
 
         if oauth-step == OAuthStep.WEBSERVER-UP: EZPRButton {
             text: "Cancel";
-            clicked => { oauth_close_button_clicked(); }
+            clicked => { oauth_cancel_button_clicked(); }
         }
 
         if oauth-step == OAuthStep.CODE-OBTAINED: EZPRButton {
             text: "Close";
-            clicked => {}
+            clicked => { oauth_close_button_clicked(); }
         }
     }
 
