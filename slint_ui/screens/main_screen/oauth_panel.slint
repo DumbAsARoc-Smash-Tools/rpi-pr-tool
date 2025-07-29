@@ -1,10 +1,11 @@
 import { Spinner, ProgressIndicator, Button } from "std-widgets.slint";
 import { Hyperlink, EZPRButton } from "../../components.slint";
+import { ActiveColors as AC } from "../../properties/colors.slint";
+import { StartGGState as SGGState } from "../../properties/start_gg_state.slint";import { ActiveColors as AC } from "../../properties/colors.slint";
 
 enum OAuthStep {
-    NOTSTARTED,
-    WAITINGFORCODE,
-    OBTAINED
+    WEBSERVER_UP,
+    CODE_OBTAINED,
 }
 
 export component OAuthPanel inherits Rectangle {
@@ -20,55 +21,133 @@ export component OAuthPanel inherits Rectangle {
     callback oauth_cancel_button_clicked();
     callback oauth_close_button_clicked();
 
-    in-out property <OAuthStep> oauth-step: NOTSTARTED;
+    in-out property <OAuthStep> oauth-step: WEBSERVER-UP;
 
     VerticalLayout {
         alignment: center;
         spacing: 40px;
         padding: 20px;
 
-        if oauth-step == OAuthStep.NOTSTARTED: Hyperlink {
-            text: "Click here to sign in to your Start.GG Account!";
-            font-size: 14px;
-            vertical-alignment: center;
-            horizontal-alignment: center;
-            clicked => {
-                oauth_signin_button_clicked();
-                oauth-step = OAuthStep.WAITINGFORCODE;
-            }
-        }
-        if oauth-step == OAuthStep.WAITINGFORCODE: Rectangle {
-
-            height: 60%;
-            width: 60%;
-
-            Text {
+        if oauth-step == OAuthStep.WEBSERVER-UP: Rectangle {
+            height: 70%;
+            
+            VerticalLayout {
                 height: 100%;
-                text: "Waiting for OAuth...";
-                font-weight: 600;
-                font-size: 16px;
                 
-                color: black;
-                vertical-alignment: top;
-            }
+                Text {
+                    font-weight: 1000;
+                    font-size: 18px;
+                    color: AC.text;
+                    horizontal-alignment: center;
+                    text: "Sign in to Start.GG";
+                }
 
-            Spinner {
-                width: 100px;
-                height: 100px;
-                indeterminate: true;
+                Text {
+                    height: 40px;
+                    color: AC.text;
+                    text: "Start.GG access is needed to query data from Start.GG's API, so to continue, please sign in with your Start.GG account.";
+                    font-weight: 600;
+                }
+
+                HorizontalLayout {
+                    width: 100%;
+                    alignment: start;
+                    spacing: 0px;
+
+                    Text {
+                        color: AC.text;
+                        text: "1) Please click ";
+                        font-weight: 600;
+                    }
+
+                    Hyperlink {
+                        text: "here";
+                        font-weight: 600;
+                        // font-size: 14px;
+                        clicked => {
+                            oauth_signin_button_clicked();
+                            // oauth-step = OAuthStep.WAITINGFORCODE;
+                        }
+                    }
+
+                    Text {
+                        color: AC.text;
+                        font-weight: 600;
+                        text: " to sign in to your Start.GG Account.";
+                    }
+                }
+
+                Text {
+                    color: AC.text;
+                    font-weight: 600;
+                    text: "2) Click the \"Allow\" button on the webpage that opens.";
+                }
+
+                Text {
+                    color: AC.text;
+                    font-weight: 600;
+                    text: "This page will update automatically once these steps are taken...";
+                }
+
+                Spinner {
+                    width: 100%;
+                    height: 100px;
+                    indeterminate: true;
+                }
+
+                EZPRButton {
+                    text: "tmp";
+                    width: 70px;
+                    height: 30px;
+
+                    clicked => {
+                        oauth-step = OAuthStep.CODE-OBTAINED;
+                    }
+                }
             }
         }
 
-        if oauth-step == OAuthStep.NOTSTARTED: EZPRButton {
-            text: "Close";
+        if oauth-step == OAuthStep.CODE-OBTAINED: Rectangle {
+            height: 70%;
+
+            VerticalLayout {
+                height: 100%;
+                
+                Text {
+                    font-weight: 1000;
+                    font-size: 18px;
+                    color: AC.text;
+                    horizontal-alignment: center;
+                    text: "Sign in Complete!";
+                }
+
+                Text {
+                    horizontal-alignment: center;
+                    font-weight: 600;
+                    color: AC.text;
+                    text: "Thank you for signing in, \{SGGState.startgg-user}! This popup may now be closed.";
+                }
+
+                EZPRButton {
+                    text: "tmp";
+                    width: 70px;
+                    height: 30px;
+
+                    clicked => {
+                        oauth-step = OAuthStep.WEBSERVER-UP;
+                    }
+                }
+            }
+        }
+
+        if oauth-step == OAuthStep.WEBSERVER-UP: EZPRButton {
+            text: "Cancel";
             clicked => { oauth_close_button_clicked(); }
         }
-        if oauth-step == OAuthStep.WAITINGFORCODE: EZPRButton {
-            text: "Cancel";
-            clicked => {
-                oauth_cancel_button_clicked();
-                oauth-step = OAuthStep.NOTSTARTED;
-            }
+
+        if oauth-step == OAuthStep.CODE-OBTAINED: EZPRButton {
+            text: "Close";
+            clicked => {}
         }
     }
 
