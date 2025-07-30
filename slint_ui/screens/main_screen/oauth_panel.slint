@@ -1,9 +1,10 @@
 import { Spinner, ProgressIndicator, Button } from "std-widgets.slint";
 import { Hyperlink, EZPRButton } from "../../components.slint";
 import { ActiveColors as AC } from "../../properties/colors.slint";
-import { StartGGState as SGGState } from "../../properties/start_gg_state.slint";import { ActiveColors as AC } from "../../properties/colors.slint";
+import { StartGGState as SGGState } from "../../properties/start_gg_state.slint";
+import { ActiveColors as AC } from "../../properties/colors.slint";
 
-enum OAuthStep {
+export enum OAuthStep {
     WEBSERVER_UP,
     CODE_OBTAINED,
 }
@@ -94,28 +95,7 @@ export component OAuthPanel inherits Rectangle {
                 Spinner {
                     width: 100%;
                     height: 100px;
-                    // progress: 0.5;
-                    // height: 80px;
                     indeterminate: true;
-                }
-
-                // Image {
-                //     source: @image-url("../../res/spinner_100px.gif");
-                //     width: 100%;
-                //     height: 100px;
-                //     image-fit: preserve;
-                //     horizontal-alignment: center;
-                //     vertical-alignment: center;
-                // }
-
-                EZPRButton {
-                    text: "tmp";
-                    width: 70px;
-                    height: 30px;
-
-                    clicked => {
-                        oauth-step = OAuthStep.CODE-OBTAINED;
-                    }
                 }
             }
         }
@@ -141,16 +121,6 @@ export component OAuthPanel inherits Rectangle {
                     font-weight: 600;
                     color: AC.text;
                     text: "Thank you for signing in, \{SGGState.startgg-user}! This popup may now be closed.";
-                }
-
-                EZPRButton {
-                    text: "tmp";
-                    width: 70px;
-                    height: 30px;
-
-                    clicked => {
-                        oauth-step = OAuthStep.WEBSERVER-UP;
-                    }
                 }
             }
         }

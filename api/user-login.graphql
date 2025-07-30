@@ -1,0 +1,10 @@
+query UserLoggedInStartGGQuery {
+    currentUser {
+        images {
+            url
+        }
+        player {
+            gamerTag
+        }
+    }
+}

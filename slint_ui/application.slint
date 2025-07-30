@@ -1,13 +1,16 @@
 import { ActiveScreen as AS, Screens } from "screens/screens.slint";
 import { ActiveColors as AC } from "properties/colors.slint";
+import { StartGGState as SGGState } from "properties/start_gg_state.slint";
 import { ComboBox, Button } from "std-widgets.slint";
 
 import { MainScreen } from "screens/main_screen/main_screen.slint";
+import { OAuthStep } from "screens/main_screen/oauth_panel.slint";
 import { PlayerDataScreen } from "screens/player_data_screen.slint";
 
 export component EZPRWindow inherits Window {
 
     in-out property <string> oauth-hyperlink-url;
+    in-out property <OAuthStep> oauth-step: WEBSERVER-UP;
 
     min-height: 640px;
     min-width: 800px;
@@ -22,6 +25,7 @@ export component EZPRWindow inherits Window {
     if(AS.screen == Screens.MAIN): MainScreen {
         width: 100%;
         height: 100%;
+        oauth-step: oauth-step;
 
         hyperlink-url: oauth-hyperlink-url;
 
@@ -35,4 +39,9 @@ export component EZPRWindow inherits Window {
         width: 100%;
         height: 100%;
     }
+}
+
+export {
+    AC as ActiveColors,
+    SGGState as StartGGState,
 }

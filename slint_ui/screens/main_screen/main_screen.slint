@@ -1,13 +1,14 @@
 import { Button } from "std-widgets.slint";
 import { ActiveColors as AC } from "../../properties/colors.slint";
 import { ActiveScreen as AS, Screens } from "../screens.slint";
-import { OAuthPanel } from "oauth_panel.slint";
+import { OAuthPanel, OAuthStep } from "oauth_panel.slint";
 
 import { EZPRButton } from "../../components.slint";
 
 export component MainScreen {
     in-out property <string> hyperlink-url;
     in-out property <bool> oauth-visible: false;
+    in-out property <OAuthStep> oauth-step;
 
     callback oauth_start_auth_button_clicked();
     callback oauth_hyperlink_clicked();
@@ -62,43 +63,30 @@ export component MainScreen {
                 text: "Connect Start.GG Account (OAUTH2)";
                 clicked => {
                     oauth_start_auth_button_clicked();
-                    // oauth_popup.show();
                     oauth-visible = true;
                 }
             }
         }
 
-        // oauth_popup := PopupWindow {
+        if oauth-visible: OAuthPanel {
 
-        //     x: (parent.width - 400px) / 2;
-        //     y: (parent.height - 400px) / 2;
+            height: 400px;
+            width: 400px;
+            oauth-step: oauth-step;
 
-        //     close-policy: no-auto-close;
-        //     width: 400px;
-        //     height: 400px;
-
-            if oauth-visible: OAuthPanel {
-
-                height: 400px;
-                width: 400px;
-                z: 10;
-
-                oauth_hyperlink_clicked => {
-                    oauth_hyperlink_clicked();
-                }
-                
-                oauth_cancel_button_clicked => {
-                    oauth_cancel_button_clicked();
-                    // oauth_popup.close();
-                    oauth-visible = false;
-                }
-
-                oauth_close_button_clicked => {
-                    oauth_close_button_clicked();
-                    // oauth_popup.close();
-                    oauth-visible = false;
-                }
+            oauth_hyperlink_clicked => {
+                oauth_hyperlink_clicked();
             }
-        // }
+            
+            oauth_cancel_button_clicked => {
+                oauth_cancel_button_clicked();
+                oauth-visible = false;
+            }
+
+            oauth_close_button_clicked => {
+                oauth_close_button_clicked();
+                oauth-visible = false;
+            }
+        }
     }
 }

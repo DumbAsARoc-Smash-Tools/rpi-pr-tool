@@ -1,5 +1,7 @@
 //! OAuth handling
 
+mod oauth_test_query;
+
 use oauth2::*;
 use oauth2::basic::BasicTokenType;
 use oauth2::basic::BasicClient;
@@ -8,55 +10,34 @@ use tokio::io::{AsyncBufReadExt, BufReader, AsyncWriteExt};
 
 // use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use tokio::net::TcpListener;
-use tokio::task::JoinHandle;
+// use tokio::task::JoinHandle;
 use url::Url;
+
+pub use oauth_test_query::get_startgg_user_and_profile_icon;
 
 const STARTGG_AUTH_URL: &str = "https://start.gg/oauth/authorize";
 const STARTGG_TOKEN_URL: &str = "https://api.start.gg/oauth/access_token";
 const STARTGG_AUTH_SCOPES: [&str; 1] = [ "user.identity" ];
 const STARTGG_REDIRECT_URI: &str = "http://localhost";
 
+// for readability's sake *sigh*
+type BasicClientType = oauth2::Client<
+            StandardErrorResponse<basic::BasicErrorResponseType>,
+            StandardTokenResponse<EmptyExtraTokenFields, BasicTokenType>,
+            StandardTokenIntrospectionResponse<EmptyExtraTokenFields, BasicTokenType>,
+            StandardRevocableToken,
+            StandardErrorResponse<RevocationErrorResponseType>,
+            EndpointSet, EndpointNotSet, EndpointNotSet, EndpointNotSet, EndpointSet>;
+type StartGGTokenResponse = oauth2::StandardTokenResponse<oauth2::EmptyExtraTokenFields, BasicTokenType>;
+pub type StartGGJoinHandleType = tokio::task::JoinHandle<Option<StandardTokenResponse<EmptyExtraTokenFields, BasicTokenType>>>;
+
 pub struct StartGGOAuth;
 
 impl StartGGOAuth {
 
-    /// This is the function that the application will call. It either
-    /// returns NONE (aka, the webserver is already running and we shouldn't
-    /// start another) or the OAUTH url the user should click and accept through.
-    /// This also sets the static webserver join handles
-    pub fn oauth_initialization(redirect_uri_port: u16) -> Option<AuthUrl> {
-        let startgg_client_id = ClientId::new(
-            env!("CLIENT_ID").to_string()
-        );
-        
-        let startgg_client_secret = ClientSecret::new(
-            env!("CLIENT_SECRET").to_string()
-        );
-        
-        let startgg_auth_url = AuthUrl::new(
-            STARTGG_AUTH_URL.to_string()
-        ).expect("Could not create authentication URL.");
-        
-        let startgg_token_url = TokenUrl::new(
-            STARTGG_TOKEN_URL.to_string()
-        ).expect("Could not create token URL.");
-
-        let client = BasicClient::new(startgg_client_id)
-            .set_client_secret(startgg_client_secret)
-            .set_auth_uri(startgg_auth_url)
-            .set_token_uri(startgg_token_url)
-            .set_redirect_uri(
-                RedirectUrl::new(
-                    format!("{}:{}", STARTGG_REDIRECT_URI, redirect_uri_port)
-                ).expect("Invalid redirect URL")
-            );
-        
-        None
-    }
-
     /// General structure of code borrowed from oauth2 example at
     /// https://github.com/ramosbugs/oauth2-rs/blob/main/examples/github_async.rs
-    pub async fn get_oauth_token(redirect_uri_port: u16) -> Option<StandardTokenResponse<EmptyExtraTokenFields, BasicTokenType>> {
+    pub fn get_oauth_token(redirect_uri_port: u16) -> (Url, oauth2::CsrfToken, BasicClientType) {
         let startgg_client_id = ClientId::new(
             env!("CLIENT_ID").to_string()
         );
@@ -82,11 +63,6 @@ impl StartGGOAuth {
                     format!("{}:{}", STARTGG_REDIRECT_URI, redirect_uri_port)
                 ).expect("Invalid redirect URL")
             );
-        
-        let http_client = oauth2::reqwest::ClientBuilder::new()
-            .redirect(oauth2::reqwest::redirect::Policy::none())
-            .build()
-            .expect("Failed to build HTTP client!");
 
         // @TODO Go back to example on SSD and see
         // why that works and this doesn't.
@@ -95,7 +71,18 @@ impl StartGGOAuth {
             .add_scopes(STARTGG_AUTH_SCOPES.map(|s| Scope::new(s.to_string())))
             .url();
 
-        open::that(format!("{auth_url}"));
+        (auth_url, csrf_state, client)
+    }
+
+    pub async fn server_code_exchange(
+        redirect_uri_port: u16,
+        csrf_state: oauth2::CsrfToken,
+        client: BasicClientType,
+    ) -> Option<StartGGTokenResponse> {
+        let http_client = oauth2::reqwest::ClientBuilder::new()
+            .redirect(oauth2::reqwest::redirect::Policy::none())
+            .build()
+            .expect("Failed to build HTTP client!");
 
         let (code, state) = {
             // A very naive implementation of the redirect server.
@@ -125,7 +112,7 @@ impl StartGGOAuth {
                         .map(|(_, state)| CsrfToken::new(state.into_owned()))
                         .unwrap();
 
-                    let message = "Go back to your terminal :)";
+                    let message = "<!DOCTYPE html><html><body><p>Go back to EZPR - OAuth Successful!</p></body></html>";
                     let response = format!(
                         "HTTP/1.1 200 OK\r\ncontent-length: {}\r\n\r\n{}",
                         message.len(),
@@ -167,6 +154,6 @@ impl StartGGOAuth {
             return Some(token);
         }
 
-        return None;
+        None
     }
 }

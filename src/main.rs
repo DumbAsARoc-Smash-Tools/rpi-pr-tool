@@ -5,12 +5,12 @@ mod settings;
 slint::include_modules!();
 
 use std::sync::Mutex;
+use oauth2::TokenResponse;
 use tokio::task::JoinHandle;
 
 use std::io::Write;
 
 use lazy_static::lazy_static;
-use oauth2::TokenResponse;
 use slint::ComponentHandle;
 
 lazy_static! {
@@ -40,39 +40,71 @@ async fn main() -> anyhow::Result<()> {
 
     let mainwin_weak = mainwin.as_weak();
     mainwin.on_oauth_start_auth_button_clicked(move || {
-        // let mut webserver_lock = OAUTH_WEBSERVER_HANDLE.lock().unwrap();
-        // if webserver_lock.is_some() {
-        //     println!("Webserver is runing currently");
-        //     return;
-        // }
+        let mut webserver_lock = OAUTH_WEBSERVER_HANDLE.lock().unwrap();
+        if webserver_lock.is_some() {
+            println!("Webserver is runing currently");
+            return;
+        }
 
-        // let handle = tokio::spawn(async move {
-        //     let code = oauth::StartGGOAuth::get_oauth_token(8080).await;
-        //     println!("Token: {}", code.clone().unwrap().access_token().secret());
+        let (url, csrf_state, client) = oauth::StartGGOAuth::get_oauth_token(8080);
+        let mw_w = mainwin_weak.clone();
+        let mw = mainwin_weak.unwrap();
+        mw.set_oauth_hyperlink_url(url.as_str().into());
 
-        //     // let s = settings::RPIPRSettings::new()
-        //     //     .set_token(code.clone());
-        //     // match serialize(&s) {
-        //     //     Err(e) => {
-        //     //         println!("Error: {}", e);
-        //     //     },
-        //     //     _ => {}
-        //     // };
-        // });
+        *webserver_lock = Some(tokio::spawn(async move {
+            let code = oauth::StartGGOAuth::server_code_exchange(
+                8080,
+                csrf_state,
+                client).await;
 
-        // *webserver_lock = Some(handle);
+            match code {
+                None => {
+                    println!("Failed to get Start.GG Code.");
+                },
+                Some(code) => {
+                    let (tag, url) = oauth::get_startgg_user_and_profile_icon(
+                        code.access_token().secret())
+                        .await.unwrap();
+                    mw_w.upgrade_in_event_loop(move |win| {
+                        win.global::<StartGGState>().set_startgg_user(tag.into());
+                        win.set_oauth_step(OAuthStep::CODEOBTAINED);
+                    }).unwrap();
+                }
+            }
+
+            let mut webserver_lock = OAUTH_WEBSERVER_HANDLE.lock().unwrap();
+            *webserver_lock = None;
+        }));
     });
 
-    // mainwin.on_oauth_signin_button_clicked(move || {
-    //     println!("oauth button clicked");
-    // });
+    let mainwin_weak = mainwin.as_weak();
+    mainwin.on_oauth_hyperlink_clicked(move || {
+        match open::that(mainwin_weak.unwrap().get_oauth_hyperlink_url()) {
+            Ok(_) => {},
+            Err(e) => {
+                println!("open::this() error: {}", e);
+            }
+        };
+    });
 
+    // let mainwin_weak = mainwin.as_weak();
     mainwin.on_oauth_cancel_button_clicked(move || {
-        println!("oauth cancel button clicked");
+        let mut webserver_lock = OAUTH_WEBSERVER_HANDLE.lock().unwrap();
+        if webserver_lock.is_some() {
+            webserver_lock.as_mut().unwrap().abort();
+            *webserver_lock = None;
+        }
     });
 
     mainwin.on_oauth_close_button_clicked(move || {
-        println!("close window");
+        // This block of code is simply to
+        // make sure that the webserver thread is
+        // well and truly gone.
+        let mut webserver_lock = OAUTH_WEBSERVER_HANDLE.lock().unwrap();
+        if webserver_lock.is_some() {
+            webserver_lock.as_mut().unwrap().abort();
+            *webserver_lock = None;
+        }
     });
 
     mainwin.run()?;
