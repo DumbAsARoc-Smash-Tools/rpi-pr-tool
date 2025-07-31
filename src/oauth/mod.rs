@@ -137,19 +137,19 @@ impl StartGGOAuth {
         let token_res = client.exchange_code(code).request_async(&http_client).await;
 
         if let Ok(token) = token_res {
-            let scopes = if let Some(scopes_vec) = token.scopes() {
-                scopes_vec
-                    .iter()
-                    .flat_map(|comma_separated| comma_separated.split(','))
-                    .collect::<Vec<_>>()
-            } else {
-                Vec::new()
-            };
-            println!("StartGG returned the following scopes:\n{scopes:?}\n");
-            println!("Token: {}", token.access_token().secret());
-            println!("Expires in: {:?}", token.expires_in().unwrap_or(
-                std::time::Duration::from_secs(0)
-            ));
+            // let scopes = if let Some(scopes_vec) = token.scopes() {
+            //     scopes_vec
+            //         .iter()
+            //         .flat_map(|comma_separated| comma_separated.split(','))
+            //         .collect::<Vec<_>>()
+            // } else {
+            //     Vec::new()
+            // };
+            // println!("StartGG returned the following scopes:\n{scopes:?}\n");
+            // println!("Token: {}", token.access_token().secret());
+            // println!("Expires in: {:?}", token.expires_in().unwrap_or(
+            //     std::time::Duration::from_secs(0)
+            // ));
 
             return Some(token);
         }

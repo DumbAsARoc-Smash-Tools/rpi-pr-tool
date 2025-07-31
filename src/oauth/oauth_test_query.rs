@@ -68,6 +68,8 @@ pub async fn get_startgg_user_and_profile_icon<S>(
 
     Ok((
         respdata.player.unwrap().gamer_tag.unwrap().clone(),
+
+        // @TODO - This can be None if the user doesn't have a pfp
         respdata.images.unwrap()[0].as_ref().unwrap().url.as_ref().unwrap().clone()
     ))
 }
