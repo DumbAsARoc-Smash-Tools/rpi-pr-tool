@@ -30,7 +30,7 @@ pub struct UserLoggedInStartGGQuery;
 
 pub async fn get_startgg_user_and_profile_icon<S>(
     token: S,
-) -> Result<(String, String), Box<dyn std::error::Error>> where S: ToString {
+) -> Result<(String, Option<String>), Box<dyn std::error::Error>> where S: ToString {
 
     let request_body = UserLoggedInStartGGQuery::build_query(
         user_logged_in_start_gg_query::Variables
@@ -66,10 +66,15 @@ pub async fn get_startgg_user_and_profile_icon<S>(
         }
     };
 
+    let url_string = match respdata.images.unwrap()[0].as_ref() {
+        Some(img) => {
+            Some(img.url.as_ref().unwrap().clone())
+        },
+        None => None
+    };
+
     Ok((
         respdata.player.unwrap().gamer_tag.unwrap().clone(),
-
-        // @TODO - This can be None if the user doesn't have a pfp
-        respdata.images.unwrap()[0].as_ref().unwrap().url.as_ref().unwrap().clone()
+        url_string
     ))
 }

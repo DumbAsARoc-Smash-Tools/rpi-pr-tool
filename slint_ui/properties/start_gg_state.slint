@@ -1,4 +1,8 @@
 export global StartGGState {
     in-out property <bool> is-signed-in: false;
+    in-out property <bool> has-pfp: false;
     in-out property <string> startgg-user: "";
+    in-out property <image> pfp: no-pfp-image;
+    
+    out property <image> no-pfp-image: @image-url("../res/random.png");
 }
