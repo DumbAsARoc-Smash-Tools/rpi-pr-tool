@@ -18,42 +18,46 @@ lazy_static! {
     static ref OAUTH_WEBSERVER_HANDLE: Mutex<Option<JoinHandle<()>>> = Mutex::new(None);
 }
 
-
-fn serialize(set: &settings::RPIPRSettings) -> anyhow::Result<()> {
-
-    let serialized = serde_json::to_string_pretty(set)?;
-    let mut file = std::fs::File::create("test")?;
-    write!(file, "{}", serialized)?;
-
-    Ok(())
-}
-
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-
-    // let set = settings::RPIPRSettings::new();
-    // serialize(&set)?;
-
-    // let testint: Arc<Mutex<u64>> = Arc::new(Mutex::new(0));
+    // load default settings location
+    let app_settings = settings::RPIPRSettings::load_from_file(None::<String>)?;
+    let app_settings_lock = app_settings.lock().unwrap();
+    if app_settings_lock.get_token().is_some() {
+        println!("Logged into Start.GG!");
+        println!(
+            "Token: {}",
+            app_settings_lock
+                .get_token()
+                .unwrap()
+                .access_token()
+                .secret()
+        );
+    }
+    drop(app_settings_lock);
 
     let mainwin = match EZPRWindow::new() {
         Ok(m) => m,
-        Err(e) => { return Err(anyhow::anyhow!(e)); }
+        Err(e) => {
+            return Err(anyhow::anyhow!(e));
+        }
     };
 
     let mainwin_weak = mainwin.as_weak();
-    // let testint_weak = Arc::downgrade(&testint);
+    let settings_weak = Arc::downgrade(&app_settings);
     mainwin.on_oauth_start_auth_button_clicked(move || {
         // let testint_strong = testint_weak.
         //     upgrade().unwrap();
         // let mut testint_lock = testint_strong.
         //     lock().unwrap();
-        
+
         // *testint_lock = 5;
         // println!("Testint: {}", *testint_lock);
 
         // drop(testint_lock);
         // drop(testint_strong);
+
+        let settings_weak = settings_weak.clone();
 
         let mut webserver_lock = OAUTH_WEBSERVER_HANDLE.lock().unwrap();
         if webserver_lock.is_some() {
@@ -67,36 +71,30 @@ async fn main() -> anyhow::Result<()> {
         mw.set_oauth_hyperlink_url(url.as_str().into());
 
         *webserver_lock = Some(tokio::spawn(async move {
-            let code = oauth::StartGGOAuth::server_code_exchange(
-                8080,
-                csrf_state,
-                client).await;
+            let code = oauth::StartGGOAuth::server_code_exchange(8080, csrf_state, client).await;
 
             match code {
                 None => {
                     println!("Failed to get Start.GG Code.");
-                },
+                }
                 Some(code) => {
-                    let (tag, url) = oauth::get_startgg_user_and_profile_icon(
-                        code.access_token().secret())
-                        .await.unwrap();
+                    let settings_token_clone = code.clone();
+                    let (tag, url) =
+                        oauth::get_startgg_user_and_profile_icon(code.access_token().secret())
+                            .await
+                            .unwrap();
 
                     let (has_pfp, img_path) = match url {
                         Some(u) => {
                             println!("{u}");
                             let pfp_path: std::path::PathBuf = "res/pfp.jpg".into();
                             let mut pfp_file = std::fs::File::create(&pfp_path).unwrap();
-                            let bytes = reqwest::get(u).await
-                                .unwrap()
-                                .bytes().await
-                                .unwrap();
+                            let bytes = reqwest::get(u).await.unwrap().bytes().await.unwrap();
                             pfp_file.write(&bytes).unwrap();
 
                             (true, Some(pfp_path))
-                        },
-                        None => {
-                            (false, None)
                         }
+                        None => (false, None),
                     };
 
                     mw_w.upgrade_in_event_loop(move |win| {
@@ -104,11 +102,20 @@ async fn main() -> anyhow::Result<()> {
                         win.global::<StartGGState>().set_has_pfp(has_pfp);
                         if img_path.is_some() {
                             win.global::<StartGGState>().set_pfp(
-                                slint::Image::load_from_path(img_path.unwrap().as_path()).unwrap()
+                                slint::Image::load_from_path(img_path.unwrap().as_path()).unwrap(),
                             );
                         }
+
+                        let settings_strong = settings_weak.upgrade().unwrap();
+                        let mut settings_lock = settings_strong.lock().unwrap();
+                        *settings_lock = settings_lock.set_token(Some(settings_token_clone));
+                        settings_lock.save_to_file().unwrap();
+                        drop(settings_lock);
+                        drop(settings_strong);
+
                         win.set_oauth_step(OAuthStep::CODEOBTAINED);
-                    }).unwrap();
+                    })
+                    .unwrap();
                 }
             }
 
@@ -120,7 +127,7 @@ async fn main() -> anyhow::Result<()> {
     let mainwin_weak = mainwin.as_weak();
     mainwin.on_oauth_hyperlink_clicked(move || {
         match open::that(mainwin_weak.unwrap().get_oauth_hyperlink_url()) {
-            Ok(_) => {},
+            Ok(_) => {}
             Err(e) => {
                 println!("open::this() error: {}", e);
             }
