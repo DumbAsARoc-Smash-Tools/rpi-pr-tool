@@ -1,0 +1,40 @@
+import { EZPRButton } from "components.slint";
+
+export component InitializationErrorWindow inherits Window {
+    in-out property <string> error-string: "test";
+    callback ok-clicked <=> ok-button.clicked;
+
+    background: white;
+    title: "EZPR Initialization Error";
+
+    VerticalLayout {
+        spacing: 10px;
+
+        Text {
+            text: "EZPR Initialization Error";
+            font-size: 18px;
+            font-weight: 600;
+            height: 70px;
+            color: black;
+
+            vertical-alignment: center;
+            horizontal-alignment: center;
+        }
+
+        Text {
+            text: "EZPR encountered an error while initializing:";
+            font-size: 14px;
+            color: black;
+        }
+
+        Text {
+            text: "\{error-string}";
+            font-size: 14px;
+            color: black;
+        }
+
+        ok-button := EZPRButton {
+            text: "OK";
+        }
+    }
+}

@@ -21,8 +21,37 @@ lazy_static! {
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     // load default settings location
-    let app_settings = settings::RPIPRSettings::load_from_file(None::<String>)?;
-    let app_settings_lock = app_settings.lock().unwrap();
+    let app_settings = match settings::RPIPRSettings::load_from_file(None::<String>) {
+        Ok(set) => set,
+        Err(e) => {
+            let error_window = InitializationErrorWindow::new()?;
+            let error_string = format!("{}", e);
+            error_window.set_error_string(error_string.into());
+
+            // let error_window_weak = error_window.as_weak();
+            error_window.on_ok_clicked(move || {
+                let _ = slint::quit_event_loop();
+            });
+            let _ = error_window.run();
+            return Ok(());
+        }
+    };
+
+    let app_settings_lock = match app_settings.lock() {
+        Ok(set) => set,
+        Err(e) => {
+            let error_window = InitializationErrorWindow::new()?;
+            let error_string = format!("{}", e);
+            error_window.set_error_string(error_string.into());
+
+            // let error_window_weak = error_window.as_weak();
+            error_window.on_ok_clicked(move || {
+                let _ = slint::quit_event_loop();
+            });
+            let _ = error_window.run();
+            return Ok(());
+        }
+    };
     if app_settings_lock.get_token().is_some() {
         println!("Logged into Start.GG!");
         println!(
@@ -46,17 +75,6 @@ async fn main() -> anyhow::Result<()> {
     let mainwin_weak = mainwin.as_weak();
     let settings_weak = Arc::downgrade(&app_settings);
     mainwin.on_oauth_start_auth_button_clicked(move || {
-        // let testint_strong = testint_weak.
-        //     upgrade().unwrap();
-        // let mut testint_lock = testint_strong.
-        //     lock().unwrap();
-
-        // *testint_lock = 5;
-        // println!("Testint: {}", *testint_lock);
-
-        // drop(testint_lock);
-        // drop(testint_strong);
-
         let settings_weak = settings_weak.clone();
 
         let mut webserver_lock = OAUTH_WEBSERVER_HANDLE.lock().unwrap();
