@@ -72,6 +72,11 @@ async fn main() -> anyhow::Result<()> {
         }
     };
 
+    // SETS TOURNAMENTS PAGE FIRST, FOR TESTING PURPOSES AND WHATNOT
+    mainwin
+        .global::<ActiveScreen>()
+        .set_screen(Screens::TOURNAMENTLIST);
+
     let mainwin_weak = mainwin.as_weak();
     let settings_weak = Arc::downgrade(&app_settings);
     mainwin.on_oauth_start_auth_button_clicked(move || {
