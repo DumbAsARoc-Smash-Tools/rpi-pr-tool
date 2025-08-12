@@ -7,3 +7,6 @@ res/
 # Testing files
 *.txt
 ext
+
+rpipr.settings
+*.ezpr
