@@ -75,24 +75,37 @@ impl EZPRFile {
         // Create player table
         conn.execute(tables::PLAYERS_TABLE_CREATE_STATEMENT)?;
 
-        // Below is an example of how to do a query
-        // (for my future reference)
+        // // Below is an example of how to do a query
+        // // (for my future reference)
 
         // for i in 0..50 {
-        //     conn.execute(format!(
-        //         "INSERT INTO {} DEFAULT VALUES;",
+        //     let mut query = conn.prepare(format!(
+        //         "INSERT INTO {} (playerTag) VALUES (:name);",
         //         tables::PLAYERS_TABLE_NAME
         //     ))?;
+        //     query.bind::<(&'static str, sqlite::Value)>((":name", i.to_string().into()))?;
+        //     'sql_execute: while let Ok(status) = query.next() {
+        //         if status == sqlite::State::Done {
+        //             break 'sql_execute;
+        //         }
+        //     }
+        //     println!("{}", i);
         // }
 
         // let players_query =
         //     conn.prepare(format!("SELECT * FROM {};", tables::PLAYERS_TABLE_NAME))?;
 
+        // use tables::PlayerTableRow;
+
         // for row in players_query
         //     .into_iter()
         //     .map(|row| PlayerTableRow::try_from(row.unwrap()).unwrap())
         // {
-        //     println!("Player found in DB: ID = {}", row.playerID);
+        //     println!(
+        //         "Player found in DB: ID = {}, Name = {}",
+        //         row.get_player_id(),
+        //         row.get_player_tag()
+        //     );
         // }
 
         Ok(())
