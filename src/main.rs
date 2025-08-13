@@ -14,6 +14,8 @@ use slint::ComponentHandle;
 
 use std::sync::{Arc, Mutex};
 
+use crate::ezpr_file_format::{EZPRFile, IEZPRFile};
+
 lazy_static! {
     static ref OAUTH_WEBSERVER_HANDLE: Mutex<Option<JoinHandle<()>>> = Mutex::new(None);
 }
@@ -64,6 +66,8 @@ async fn main() -> anyhow::Result<()> {
         );
     }
     drop(app_settings_lock);
+
+    EZPRFile::new_file("test.ezpr")?;
 
     let mainwin = match EZPRWindow::new() {
         Ok(m) => m,
