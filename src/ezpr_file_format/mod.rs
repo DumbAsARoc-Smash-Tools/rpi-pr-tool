@@ -4,6 +4,8 @@ use anyhow::anyhow;
 use sqlite::Connection;
 use std::sync::Mutex;
 
+pub use tables::{ PlayerTable, PlayerTableRow };
+
 lazy_static::lazy_static! {
     static ref EZPR_FILE_INSTANCE: Mutex<Option<EZPRFile>> = Mutex::new(None);
 }
@@ -13,17 +15,12 @@ pub trait IEZPRFile {
     /// previously opened file, so before calling this function,
     /// code should check if the end-user is okay with overwriting
     /// the previously opened file.
-    fn new_file<P>(file_path: P) -> anyhow::Result<()>
-    where
-        P: ToString;
+    fn new_file<P>(file_path: P) -> anyhow::Result<()> where P: ToString;
 
     /// Saves the currently opened file to disk. If a file is
     /// not open, simply return Ok(). Any errors in the process
     /// are returned as Err().
-    fn save_file<P>(file_path: P) -> anyhow::Result<()>
-    where
-        P: ToString,
-    {
+    fn save_file<P>(file_path: P) -> anyhow::Result<()> where P: ToString {
         Err(anyhow!("Saving manually is not implemented."))
     }
 
@@ -31,9 +28,7 @@ pub trait IEZPRFile {
     /// function will ensure that the file exists
     /// before attemtpting to load it. Any errors
     /// with this process are reported as Err().
-    fn load_file<P>(file_path: P) -> anyhow::Result<()>
-    where
-        P: ToString;
+    fn load_file<P>(file_path: P) -> anyhow::Result<()> where P: ToString;
 
     /// Closes the currently opened file without saving any changes.
     /// Any errors are reported as Err().
@@ -69,20 +64,23 @@ impl EZPRFile {
             PRAGMA writable_schema = 0;
             VACUUM;
             PRAGMA integrity_check;
-        ",
+        "
         )?;
 
         // Create player table
-        conn.execute(tables::PLAYERS_TABLE_CREATE_STATEMENT)?;
+        conn.execute(tables::PlayerTable::get_create_table_command())?;
 
         // // Below is an example of how to do a query
         // // (for my future reference)
 
         // for i in 0..50 {
-        //     let mut query = conn.prepare(format!(
-        //         "INSERT INTO {} (playerTag) VALUES (:name);",
-        //         tables::PLAYERS_TABLE_NAME
-        //     ))?;
+        //     let mut query = conn.prepare(
+        //         format!(
+        //             "INSERT INTO {} ({}) VALUES (:name);",
+        //             tables::PlayerTable::get_table_name(),
+        //             tables::PlayerTable::get_player_tag_name()
+        //         )
+        //     )?;
         //     query.bind::<(&'static str, sqlite::Value)>((":name", i.to_string().into()))?;
         //     'sql_execute: while let Ok(status) = query.next() {
         //         if status == sqlite::State::Done {
@@ -92,15 +90,15 @@ impl EZPRFile {
         //     println!("{}", i);
         // }
 
-        // let players_query =
-        //     conn.prepare(format!("SELECT * FROM {};", tables::PLAYERS_TABLE_NAME))?;
+        // let players_query = conn.prepare(
+        //     format!("SELECT * FROM {};", tables::PlayerTable::get_table_name())
+        // )?;
 
         // use tables::PlayerTableRow;
 
         // for row in players_query
         //     .into_iter()
-        //     .map(|row| PlayerTableRow::try_from(row.unwrap()).unwrap())
-        // {
+        //     .map(|row| PlayerTableRow::try_from(row.unwrap()).unwrap()) {
         //     println!(
         //         "Player found in DB: ID = {}, Name = {}",
         //         row.get_player_id(),
@@ -121,10 +119,7 @@ impl IEZPRFile for EZPRFile {
         EZPR_FILE_INSTANCE.lock().unwrap().is_some()
     }
 
-    fn load_file<P>(file_path: P) -> anyhow::Result<()>
-    where
-        P: ToString,
-    {
+    fn load_file<P>(file_path: P) -> anyhow::Result<()> where P: ToString {
         let path = file_path.to_string();
         let file = std::fs::File::open(&path)?;
         drop(file);
@@ -144,7 +139,9 @@ impl IEZPRFile for EZPRFile {
         };
         let mut file_lock = match EZPR_FILE_INSTANCE.lock() {
             Ok(l) => l,
-            Err(e) => return Err(anyhow::anyhow!("{}", e)),
+            Err(e) => {
+                return Err(anyhow::anyhow!("{}", e));
+            }
         };
 
         *file_lock = Some(file_instance);
@@ -152,10 +149,7 @@ impl IEZPRFile for EZPRFile {
         Ok(())
     }
 
-    fn new_file<P>(file_path: P) -> anyhow::Result<()>
-    where
-        P: ToString,
-    {
+    fn new_file<P>(file_path: P) -> anyhow::Result<()> where P: ToString {
         let path = file_path.to_string();
         let connection = sqlite::open(&path)?;
 
@@ -177,7 +171,9 @@ impl IEZPRFile for EZPRFile {
 
         let mut file_lock = match EZPR_FILE_INSTANCE.lock() {
             Ok(l) => l,
-            Err(e) => return Err(anyhow::anyhow!("{}", e)),
+            Err(e) => {
+                return Err(anyhow::anyhow!("{}", e));
+            }
         };
 
         *file_lock = Some(file_instance);
