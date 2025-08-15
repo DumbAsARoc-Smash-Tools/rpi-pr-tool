@@ -4,7 +4,7 @@ use anyhow::anyhow;
 use sqlite::Connection;
 use std::sync::Mutex;
 
-pub use tables::{ PlayerTable, PlayerTableRow };
+// pub use tables::{PlayersTable, PlayersTableRow};
 
 lazy_static::lazy_static! {
     static ref EZPR_FILE_INSTANCE: Mutex<Option<EZPRFile>> = Mutex::new(None);
@@ -15,12 +15,17 @@ pub trait IEZPRFile {
     /// previously opened file, so before calling this function,
     /// code should check if the end-user is okay with overwriting
     /// the previously opened file.
-    fn new_file<P>(file_path: P) -> anyhow::Result<()> where P: ToString;
+    fn new_file<P>(file_path: P) -> anyhow::Result<()>
+    where
+        P: ToString;
 
     /// Saves the currently opened file to disk. If a file is
     /// not open, simply return Ok(). Any errors in the process
     /// are returned as Err().
-    fn save_file<P>(file_path: P) -> anyhow::Result<()> where P: ToString {
+    fn save_file<P>(file_path: P) -> anyhow::Result<()>
+    where
+        P: ToString,
+    {
         Err(anyhow!("Saving manually is not implemented."))
     }
 
@@ -28,7 +33,9 @@ pub trait IEZPRFile {
     /// function will ensure that the file exists
     /// before attemtpting to load it. Any errors
     /// with this process are reported as Err().
-    fn load_file<P>(file_path: P) -> anyhow::Result<()> where P: ToString;
+    fn load_file<P>(file_path: P) -> anyhow::Result<()>
+    where
+        P: ToString;
 
     /// Closes the currently opened file without saving any changes.
     /// Any errors are reported as Err().
@@ -64,11 +71,20 @@ impl EZPRFile {
             PRAGMA writable_schema = 0;
             VACUUM;
             PRAGMA integrity_check;
-        "
+        ",
         )?;
 
         // Create player table
-        conn.execute(tables::PlayerTable::get_create_table_command())?;
+        conn.execute(tables::PlayersTable::get_create_table_command())?;
+
+        // Create Tournaments Table
+        conn.execute(tables::TournamentsTable::get_create_table_command())?;
+
+        // Create Aliases Table
+        conn.execute(tables::AliasesTable::get_create_table_command())?;
+
+        // Create Placements Table
+        conn.execute(tables::PlacementsTable::get_create_table_command())?;
 
         // // Below is an example of how to do a query
         // // (for my future reference)
@@ -77,8 +93,8 @@ impl EZPRFile {
         //     let mut query = conn.prepare(
         //         format!(
         //             "INSERT INTO {} ({}) VALUES (:name);",
-        //             tables::PlayerTable::get_table_name(),
-        //             tables::PlayerTable::get_player_tag_name()
+        //             tables::PlayersTable::get_table_name(),
+        //             tables::PlayersTable::get_player_tag_name()
         //         )
         //     )?;
         //     query.bind::<(&'static str, sqlite::Value)>((":name", i.to_string().into()))?;
@@ -91,14 +107,14 @@ impl EZPRFile {
         // }
 
         // let players_query = conn.prepare(
-        //     format!("SELECT * FROM {};", tables::PlayerTable::get_table_name())
+        //     format!("SELECT * FROM {};", tables::PlayersTable::get_table_name())
         // )?;
 
-        // use tables::PlayerTableRow;
+        // use tables::PlayersTableRow;
 
         // for row in players_query
         //     .into_iter()
-        //     .map(|row| PlayerTableRow::try_from(row.unwrap()).unwrap()) {
+        //     .map(|row| PlayersTableRow::try_from(row.unwrap()).unwrap()) {
         //     println!(
         //         "Player found in DB: ID = {}, Name = {}",
         //         row.get_player_id(),
@@ -119,7 +135,10 @@ impl IEZPRFile for EZPRFile {
         EZPR_FILE_INSTANCE.lock().unwrap().is_some()
     }
 
-    fn load_file<P>(file_path: P) -> anyhow::Result<()> where P: ToString {
+    fn load_file<P>(file_path: P) -> anyhow::Result<()>
+    where
+        P: ToString,
+    {
         let path = file_path.to_string();
         let file = std::fs::File::open(&path)?;
         drop(file);
@@ -149,7 +168,10 @@ impl IEZPRFile for EZPRFile {
         Ok(())
     }
 
-    fn new_file<P>(file_path: P) -> anyhow::Result<()> where P: ToString {
+    fn new_file<P>(file_path: P) -> anyhow::Result<()>
+    where
+        P: ToString,
+    {
         let path = file_path.to_string();
         let connection = sqlite::open(&path)?;
 
