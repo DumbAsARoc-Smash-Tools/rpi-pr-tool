@@ -4618,6 +4618,7 @@ dependencies = [
  "lazy_static",
  "oauth2",
  "open",
+ "paste",
  "reqwest",
  "serde",
  "serde_json",
