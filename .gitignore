@@ -2,7 +2,7 @@
 target/
 .cargo/config.toml
 
-res/
+res/pfp.jpg
 
 # Testing files
 *.txt
