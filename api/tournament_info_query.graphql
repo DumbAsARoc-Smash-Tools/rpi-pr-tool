@@ -1,0 +1,9 @@
+query TournamentInformationQuery($eventSlug: String) {
+  event(slug: $eventSlug) {
+    name
+    numEntrants
+    tournament {
+      name
+    }
+  }
+}

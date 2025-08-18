@@ -1,5 +1,6 @@
 mod ezpr_file_format;
 mod oauth;
+mod queries;
 mod settings;
 
 slint::include_modules!();
@@ -12,9 +13,9 @@ use std::io::Write;
 use lazy_static::lazy_static;
 use slint::ComponentHandle;
 
-use std::sync::{ Arc, Mutex };
+use std::sync::{Arc, Mutex};
 
-use crate::ezpr_file_format::{ EZPRFile, IEZPRFile };
+use crate::ezpr_file_format::{EZPRFile, IEZPRFile};
 
 lazy_static! {
     static ref OAUTH_WEBSERVER_HANDLE: Mutex<Option<JoinHandle<()>>> = Mutex::new(None);
@@ -56,7 +57,14 @@ async fn main() -> anyhow::Result<()> {
     };
     if app_settings_lock.get_token().is_some() {
         println!("Logged into Start.GG!");
-        println!("Token: {}", app_settings_lock.get_token().unwrap().access_token().secret());
+        println!(
+            "Token: {}",
+            app_settings_lock
+                .get_token()
+                .unwrap()
+                .access_token()
+                .secret()
+        );
     }
     drop(app_settings_lock);
 
@@ -85,64 +93,58 @@ async fn main() -> anyhow::Result<()> {
         let mw = mainwin_weak.unwrap();
         mw.set_oauth_hyperlink_url(url.as_str().into());
 
-        *webserver_lock = Some(
-            tokio::spawn(async move {
-                let code = oauth::StartGGOAuth::server_code_exchange(
-                    8080,
-                    csrf_state,
-                    client
-                ).await;
+        *webserver_lock = Some(tokio::spawn(async move {
+            let code = oauth::StartGGOAuth::server_code_exchange(8080, csrf_state, client).await;
 
-                match code {
-                    None => {
-                        println!("Failed to get Start.GG Code.");
-                    }
-                    Some(code) => {
-                        let settings_token_clone = code.clone();
-                        let (tag, url) = oauth
-                            ::get_startgg_user_and_profile_icon(code.access_token().secret()).await
+            match code {
+                None => {
+                    println!("Failed to get Start.GG Code.");
+                }
+                Some(code) => {
+                    let settings_token_clone = code.clone();
+                    let (tag, url) =
+                        oauth::get_startgg_user_and_profile_icon(code.access_token().secret())
+                            .await
                             .unwrap();
 
-                        let (has_pfp, img_path) = match url {
-                            Some(u) => {
-                                println!("{u}");
-                                let pfp_path: std::path::PathBuf = "res/pfp.jpg".into();
-                                let mut pfp_file = std::fs::File::create(&pfp_path).unwrap();
-                                let bytes = reqwest::get(u).await.unwrap().bytes().await.unwrap();
-                                pfp_file.write(&bytes).unwrap();
+                    let (has_pfp, img_path) = match url {
+                        Some(u) => {
+                            println!("{u}");
+                            let pfp_path: std::path::PathBuf = "res/pfp.jpg".into();
+                            let mut pfp_file = std::fs::File::create(&pfp_path).unwrap();
+                            let bytes = reqwest::get(u).await.unwrap().bytes().await.unwrap();
+                            pfp_file.write(&bytes).unwrap();
 
-                                (true, Some(pfp_path))
-                            }
-                            None => (false, None),
-                        };
+                            (true, Some(pfp_path))
+                        }
+                        None => (false, None),
+                    };
 
-                        mw_w.upgrade_in_event_loop(move |win| {
-                            win.global::<StartGGState>().set_startgg_user(tag.into());
-                            win.global::<StartGGState>().set_has_pfp(has_pfp);
-                            if img_path.is_some() {
-                                win.global::<StartGGState>().set_pfp(
-                                    slint::Image
-                                        ::load_from_path(img_path.unwrap().as_path())
-                                        .unwrap()
-                                );
-                            }
+                    mw_w.upgrade_in_event_loop(move |win| {
+                        win.global::<StartGGState>().set_startgg_user(tag.into());
+                        win.global::<StartGGState>().set_has_pfp(has_pfp);
+                        if img_path.is_some() {
+                            win.global::<StartGGState>().set_pfp(
+                                slint::Image::load_from_path(img_path.unwrap().as_path()).unwrap(),
+                            );
+                        }
 
-                            let settings_strong = settings_weak.upgrade().unwrap();
-                            let mut settings_lock = settings_strong.lock().unwrap();
-                            *settings_lock = settings_lock.set_token(Some(settings_token_clone));
-                            settings_lock.save_to_file().unwrap();
-                            drop(settings_lock);
-                            drop(settings_strong);
+                        let settings_strong = settings_weak.upgrade().unwrap();
+                        let mut settings_lock = settings_strong.lock().unwrap();
+                        *settings_lock = settings_lock.set_token(Some(settings_token_clone));
+                        settings_lock.save_to_file().unwrap();
+                        drop(settings_lock);
+                        drop(settings_strong);
 
-                            win.set_oauth_step(OAuthStep::CODEOBTAINED);
-                        }).unwrap();
-                    }
+                        win.set_oauth_step(OAuthStep::CODEOBTAINED);
+                    })
+                    .unwrap();
                 }
+            }
 
-                let mut webserver_lock = OAUTH_WEBSERVER_HANDLE.lock().unwrap();
-                *webserver_lock = None;
-            })
-        );
+            let mut webserver_lock = OAUTH_WEBSERVER_HANDLE.lock().unwrap();
+            *webserver_lock = None;
+        }));
     });
 
     let mainwin_weak = mainwin.as_weak();
