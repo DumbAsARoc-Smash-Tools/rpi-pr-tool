@@ -8,9 +8,9 @@ use reqwest::Client;
 
 #[derive(Debug, Clone)]
 pub struct TournamentInformationQueryResult {
-    tournament_name: String,
-    event_name: String,
-    num_entrants: i64,
+    pub tournament_name: String,
+    pub event_name: String,
+    pub num_entrants: i64,
 }
 
 #[derive(GraphQLQuery)]
