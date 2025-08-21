@@ -11,8 +11,6 @@ use tokio::net::TcpListener;
 // use tokio::task::JoinHandle;
 use url::Url;
 
-use crate::queries::get_startgg_user_and_profile_icon;
-
 const STARTGG_AUTH_URL: &str = "https://start.gg/oauth/authorize";
 const STARTGG_TOKEN_URL: &str = "https://api.start.gg/oauth/access_token";
 const STARTGG_AUTH_SCOPES: [&str; 1] = ["user.identity"];

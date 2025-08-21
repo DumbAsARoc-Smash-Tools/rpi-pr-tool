@@ -70,21 +70,21 @@ macro_rules! sql_table_description {
                     let mut s = format!("CREATE TABLE {} (",
                         std::stringify!($i),
                     );
-                    let mut ctr = 0;
+                    let mut _ctr = 0;
                     $(
                         s = format!("{}{} {}",
                             s,
-                            if ctr == 0 { "" } else {","},
+                            if _ctr == 0 { "" } else {","},
                             std::concat!(std::stringify!($colname_list), " ", $sql_params),
                         );
-                        ctr += 1;
+                        _ctr += 1;
                     )*
 
                     s = s + ");";
                     s
                 }
             }
-        
+
             pub struct [<$i TableRow>] {
                 $(
                     $colname_list : $type_list,
@@ -119,7 +119,9 @@ macro_rules! sql_table_description {
 #[macro_export]
 macro_rules! try_from_line {
     ($value_varname:ident, $colname:ident, String) => {
-        let $colname = $value_varname.try_read::<&str, _>(std::stringify!($colname))?.to_string();
+        let $colname = $value_varname
+            .try_read::<&str, _>(std::stringify!($colname))?
+            .to_string();
     };
 
     ($value_varname:ident, $colname:ident, $type:ty) => {
