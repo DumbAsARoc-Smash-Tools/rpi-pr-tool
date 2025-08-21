@@ -1,7 +1,5 @@
 //! OAuth handling
 
-mod oauth_test_query;
-
 use oauth2::basic::BasicClient;
 use oauth2::basic::BasicTokenType;
 use oauth2::*;
@@ -13,7 +11,7 @@ use tokio::net::TcpListener;
 // use tokio::task::JoinHandle;
 use url::Url;
 
-pub use oauth_test_query::get_startgg_user_and_profile_icon;
+use crate::queries::get_startgg_user_and_profile_icon;
 
 const STARTGG_AUTH_URL: &str = "https://start.gg/oauth/authorize";
 const STARTGG_TOKEN_URL: &str = "https://api.start.gg/oauth/access_token";

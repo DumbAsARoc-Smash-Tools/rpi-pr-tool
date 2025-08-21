@@ -102,12 +102,12 @@ async fn main() -> anyhow::Result<()> {
                 }
                 Some(code) => {
                     let settings_token_clone = code.clone();
-                    let (tag, url) =
-                        oauth::get_startgg_user_and_profile_icon(code.access_token().secret())
+                    let profile_info =
+                        queries::get_startgg_user_and_profile_icon(code.access_token().secret())
                             .await
                             .unwrap();
 
-                    let (has_pfp, img_path) = match url {
+                    let (has_pfp, img_path) = match &profile_info.pfp_url {
                         Some(u) => {
                             println!("{u}");
                             let pfp_path: std::path::PathBuf = "res/pfp.jpg".into();
@@ -121,7 +121,8 @@ async fn main() -> anyhow::Result<()> {
                     };
 
                     mw_w.upgrade_in_event_loop(move |win| {
-                        win.global::<StartGGState>().set_startgg_user(tag.into());
+                        win.global::<StartGGState>()
+                            .set_startgg_user(profile_info.username.into());
                         win.global::<StartGGState>().set_has_pfp(has_pfp);
                         if img_path.is_some() {
                             win.global::<StartGGState>().set_pfp(
