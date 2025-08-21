@@ -21,7 +21,7 @@ pub struct TournamentInformationQueryResult {
 )]
 pub struct TournamentInformationQuery;
 
-pub async fn get_startgg_user_and_profile_icon<S, T>(
+pub async fn get_tournament_and_event_info<S, T>(
     token: S,
     event_slug: T,
 ) -> anyhow::Result<TournamentInformationQueryResult>
@@ -35,6 +35,8 @@ where
         });
 
     let client = Client::new();
+
+    #[allow(unused_variables)]
     let resp = client
         .post(STARTGG_ENDPOINT)
         .bearer_auth(token.to_string())
