@@ -3,7 +3,7 @@ use oauth2::basic::BasicTokenType;
 use oauth2::{EmptyExtraTokenFields, StandardTokenResponse};
 
 pub type SettingsArc = std::sync::Arc<std::sync::Mutex<RPIPRSettings>>;
-type TokenType = StandardTokenResponse<EmptyExtraTokenFields, BasicTokenType>;
+pub type TokenType = StandardTokenResponse<EmptyExtraTokenFields, BasicTokenType>;
 pub const DEFAULT_SETTINGS_LOC: &str = "rpipr.settings";
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]

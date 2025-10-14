@@ -136,4 +136,15 @@ impl StartGGOAuth {
 
         None
     }
+
+    /// Verifies the given OAuth Token to make sure
+    /// it both works and isn't expired.
+    ///
+    /// # Returns
+    /// On success, returns `true` if the token was refreshed,
+    /// and `false` if it was not. On error, returns why
+    /// an error occurred.
+    pub fn verify_oauth_token(token: &crate::settings::TokenType) -> anyhow::Result<bool> {
+        Ok(false)
+    }
 }
